@@ -80,16 +80,23 @@ sudo chown -R sonarqube:sonarqube /opt/sonarqube/sonarqube-10.1.0.73491
 ---------------------------
 sudo su - sonarqube
 
-8. Navigate to directory and START SonarQube
---------------------------------------------
+8. Navigate to directory and START SonarQube it can take some minutes due to elasticsearch also built in requires more time
+---------------------------------------------------------------------------------------------------------------------------
 cd /opt/sonarqube/sonarqube-10.1.0.73491/bin/macosx-universal-64/
 ./sonar.sh start
 
 #Check Status
 ./sonar.sh status
 
+9. Open SonarQube in Browser login: admin, admin, change password ( it will auto popup )
+----------------------------
+http://localhost:9000/
+
+10. Enjoy using SonarQube
+-------------------------
 
 
+Published at 2024.10.27: Peter Csohany 8X AWS Certified, Instrument-IT
 
 
 
