@@ -11,6 +11,10 @@ sudo ln -sfn /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/Java
 #Check if sonarqube user already exists
 dscl . list /Users | grep sonarqube
 
+#Create Home directory for sonarqube
+sudo mkdir -p /Users/sonarqube
+
+
 #Create sonarqube user with password
 sudo dscl . -create /Users/sonarqube
 sudo dscl . -create /Users/sonarqube UserShell /bin/bash
@@ -20,10 +24,16 @@ sudo dscl . -create /Users/sonarqube PrimaryGroupID 1001
 sudo dscl . -create /Users/sonarqube NFSHomeDirectory /Users/sonarqube
 sudo dscl . -passwd /Users/sonarqube <your_password>
 
+#Set Home directory for sonarqube user
+sudo dscl . -create /Users/sonarqube NFSHomeDirectory /Users/sonarqube
+
 #Create sonarqube group
 sudo dscl . -create /Groups/sonarqube
 sudo dscl . -create /Groups/sonarqube gid 1001
 sudo dscl . -append /Groups/sonarqube GroupMembership sonarqube
+
+#Set ownership
+sudo chown -R sonarqube:sonarqube /Users/sonarqube
 
 #Verify the user and group creation
 dscl . -read /Users/sonarqube
