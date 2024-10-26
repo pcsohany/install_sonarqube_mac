@@ -3,8 +3,19 @@
 #Download and install OpenJDK 17 using brew (Homebrew is required; if not installed, visit brew.sh for instructions):
 brew install openjdk@17
 
-#After installation, make sure to link the JDK:
-sudo ln -sfn /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+#Exporting manually the java home variable
+export JAVA_HOME=/usr/local/opt/openjdk@17
+export 'JAVA_HOME=/usr/local/opt/openjdk@17' >> ~/.zshrc
+
+#Create Symlink
+sudo ln -sfn /usr/local/opt/openjdk@17/bin/java /usr/local/bin/java
+
+#Check Version
+$JAVA_HOME/bin/java -version
+
+#Restart your terminal if below command works you can go ahead.
+java -version
+
 
 2. Create the sonarqube User and sonarqube group
 ------------------------------------------------
