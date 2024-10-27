@@ -112,6 +112,7 @@ Important: Your router may need to set NAT port forwarding from port 9000 to 900
 Some Internet provider could block all traffic goes out from your public IPv4 address hence the provider need to allow out/incoming traffic 
 However traffic on http is unsecure and is not best practice, this only should use for learn/test purpose.
 Gilab can not communicate to your local ip:9000 by default. Gitlab runner using tokens for communication.
+Exposing port 9000 to your public IP is a critical risk and not suggested.
 
 Published at 2024.10.27: Peter Csohany 8X AWS Certified, Instrument-IT
 
