@@ -94,7 +94,19 @@ http://localhost:9000/
 
 10. Enjoy using SonarQube
 -------------------------
+P.S: Let your terminal run, if you close or exit the program will stop
+if you want to be permantly running ( until MAC reboot ) send it to background
 
+#1 run it in the background, if you close terminal program will exit
+./sonar.sh start &
+
+#2 execute the below command if you want it to run even if closing terminal
+disown
+
+#3 Method 2: you can even close your terminal
+nohup ./sonar.sh start > sonar.log 2>&1 &
+
+#to close the program use the stop or ps -ef | grep sonar and kill -9 PID
 
 Published at 2024.10.27: Peter Csohany 8X AWS Certified, Instrument-IT
 
