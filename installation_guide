@@ -80,8 +80,8 @@ sudo chown -R sonarqube:sonarqube /opt/sonarqube/sonarqube-10.1.0.73491
 ---------------------------
 sudo su - sonarqube
 
-8. Navigate to directory and START SonarQube it can take some minutes due to elasticsearch also built in requires more time
----------------------------------------------------------------------------------------------------------------------------
+8. Navigate to directory and START SonarQube it can take some minutes
+---------------------------------------------------------------------
 cd /opt/sonarqube/sonarqube-10.1.0.73491/bin/macosx-universal-64/
 ./sonar.sh start
 
@@ -103,20 +103,26 @@ if you want to be permantly running ( until MAC reboot ) send it to background
 #2 execute the below command if you want it to run even if closing terminal
 disown
 
-#3 Method 2: you can even close your terminal
+#3 Alternative Method: you can even close your terminal
 nohup ./sonar.sh start > sonar.log 2>&1 &
 
-#to close the program use the stop or ps -ef | grep sonar and kill -9 PID
+#to close the program use the ./sonar-sh stop or ps -ef | grep sonar and kill -9 PID
 
-Important: Your router may need to set NAT port forwarding from port 9000 to 9000 or from 9000 internal to 8080 external.
-Some Internet provider could block all traffic goes out from your public IPv4 address hence the provider need to allow out/incoming traffic 
-However traffic on http is unsecure and is not best practice, this only should use for learn/test purpose.
+Important: 
+-------------------------------
+Your router may need to set NAT port forwarding from port 9000 to 9000 or from 9000 internal to 8080 external.
+
+Some Internet provider could block all traffic goes out from your public IPv4 address 
+hence the provider need to allow out/incoming traffic.
+
+However traffic on http is unsecure! and is not best practice, this only should use for learn/test purpose.
+
 Gilab can not communicate to your local ip:9000 by default. Gitlab runner using tokens for communication.
+
 Exposing port 9000 to your public IP is a critical risk and not suggested.
 
-
 if nothing above works you will need external dns support eg:reverse proxy/nginx, NGrok or similar to expose your local service
-NGrok is the fastest way
+NGrok is the fastest way and it is safe to use.
 
 11. Install ngrok:
 ------------------
@@ -136,13 +142,13 @@ ngrok config add-authtoken 2hPl3XyieqgOj_6your_super_secret_temporary_token
 -----------------------------------------------------------------
 ngrok http http://localhost:9000  or http://192.168.0.176:9000 etc..
 
-15. Go to Gilab edit your CI/CD Variable to the NGrok temporary public address
-------------------------------------------------------------------------------
+15. Go to Gilab edit your CI/CD Variable (sonar_host) to the NGrok temporary public address
+-------------------------------------------------------------------------------------------
 
-Edit your .gitlab-ci.yml as well with the ngrok url!!!
+Edit your .gitlab-ci.yml as well to the ngrok url!!!
 #Note that ngrok will have every time different url once you stop/resart NGrok
 
-Booom. rerun pipeline, for first step I added a curl install and curl ngrok adress command to check at the firsst stage if my sonarQube have response
+Booom. rerun pipeline, for first step I added a curl install and curl ngrok address command to check at the first stage if my sonarQube have response
 to the Gitlab environment.
 
 
