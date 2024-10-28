@@ -114,7 +114,140 @@ However traffic on http is unsecure and is not best practice, this only should u
 Gilab can not communicate to your local ip:9000 by default. Gitlab runner using tokens for communication.
 Exposing port 9000 to your public IP is a critical risk and not suggested.
 
+
+if nothing above works you will need external dns support eg:reverse proxy/nginx, NGrok or similar to expose your local service
+NGrok is the fastest way
+
+#Install ngrok:
+brew install ngrok/ngrok/ngrok
+
+#sign-up or login with oauth eg: google account
+follow the instruction you will se the ommands and your account tokent. once you logged in. Go to your terminal/Visual Code
+
+#Set up token to commincate with ngrok proxy service
+ngrok config add-authtoken 2hPl3XyieqgOjXiTZv2ExlKFasA_6your_super_secret_temprary_token
+
+#Expose your local service. You can use IP address as well from your Inet is a private IPv4. see here: ifconfig -a 192.168.0.176 example
+#START NGROK and see the public address
+ngrok http http://localhost:9000
+
+#Go to Gilab edit your CI/CD Variable to the NGrok temporary public address
+# Edit your .gitlab-ci.yml as well with the ngrok url!!!
+#Note that ngrok will have every time different url once you stop/resart NGrok
+
+Booom. Pipeline worked.
+
+
 Published at 2024.10.27: Peter Csohany 8X AWS Certified, Instrument-IT
+
+
+my example .gitlab-ci.yml config
+
+stages:
+  - test
+  - build-gitlab-package
+  - publish-to-artifacts
+  - docker-build-stage
+  - aws-ecr-push-stage
+  - sonarqube-stage
+
+
+test:
+  image: debian:latest
+  services:
+    - name: docker:dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=192.168.0.176"]
+  stage: test
+  script:
+    - apt-get update && apt-get install -y curl  # Install curl
+    - curl https://cc0e-94-248-144-212.ngrok-free.app/api/server/version
+
+
+
+build:
+  stage: build-gitlab-package
+  image: python:3.12
+  script:
+    - pip install setuptools wheel twine
+    # Automatically create a unique version based on the current date and time.
+    - export VERSION=$(date +'%Y%m%d%H%M%S')
+    - sed -i "s/version='.*'/version='$VERSION'/" setup.py
+    - python setup.py sdist bdist_wheel
+
+  artifacts:
+    paths:
+      - dist/*.whl
+      - dist/*.tar.gz
+
+publish:
+  stage: publish-to-artifacts
+  image: python:3.12
+  script:
+    - pip install twine
+    - twine upload --repository-url https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/packages/pypi dist/*
+  variables:
+    TWINE_USERNAME: "gitlab-ci-token"
+    TWINE_PASSWORD: $CI_JOB_TOKEN
+
+build_docker_image:
+  stage: docker-build-stage
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_PIPELINE_IID .
+  after_script:
+    - docker images
+
+aws_ecr_push:
+  stage: aws-ecr-push-stage
+  image: docker:latest
+  
+  services:
+    - name: docker:dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=192.168.0.176"]
+  variables:
+    DOCKER_DRIVER: overlay2
+  script:
+    # Install the AWS CLI directly using apk
+    - apk add --no-cache aws-cli
+    # Configure AWS credentials
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set region $AWS_DEFAULT_REGION
+    # Verify AWS CLI configuration
+    - aws sts get-caller-identity
+    # Build the Docker image locally
+    - docker build -t gokumodoro:$CI_PIPELINE_IID .
+    # Tag the Docker image for AWS ECR
+    - docker tag gokumodoro:$CI_PIPELINE_IID $AWS_ECR_REGISTRY/instrument-it:latest
+    # Login to AWS ECR
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY
+    # Push the Docker image to ECR
+    - docker push $AWS_ECR_REGISTRY/instrument-it:latest
+    # List images to verify the successful push
+    - docker images
+
+sonarqube-check:
+  stage: sonarqube-stage
+  image: 
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script: 
+    - sonar-scanner
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+
 
 
 
