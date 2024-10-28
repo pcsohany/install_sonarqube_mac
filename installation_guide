@@ -118,30 +118,37 @@ Exposing port 9000 to your public IP is a critical risk and not suggested.
 if nothing above works you will need external dns support eg:reverse proxy/nginx, NGrok or similar to expose your local service
 NGrok is the fastest way
 
-#Install ngrok:
+11. Install ngrok:
+------------------
 brew install ngrok/ngrok/ngrok
 
-#sign-up or login with oauth eg: google account
-follow the instruction you will se the ommands and your account tokent. once you logged in. Go to your terminal/Visual Code
+12. sign-up or login with oauth eg: google account
+--------------------------------------------------
+follow the instruction you will see the commands and your account token. Once you have logged in, Go to your terminal/Visual Code
 
-#Set up token to commincate with ngrok proxy service
-ngrok config add-authtoken 2hPl3XyieqgOjXiTZv2ExlKFasA_6your_super_secret_temprary_token
+13. Set up token to commincate with ngrok proxy service
+-------------------------------------------------------
+ngrok config add-authtoken 2hPl3XyieqgOj_6your_super_secret_temporary_token
 
 #Expose your local service. You can use IP address as well from your Inet is a private IPv4. see here: ifconfig -a 192.168.0.176 example
-#START NGROK and see the public address
-ngrok http http://localhost:9000
 
-#Go to Gilab edit your CI/CD Variable to the NGrok temporary public address
-# Edit your .gitlab-ci.yml as well with the ngrok url!!!
+14. START NGROK and see the public address of NGrok proxy tunnel.
+-----------------------------------------------------------------
+ngrok http http://localhost:9000  or http://192.168.0.176:9000 etc..
+
+15. Go to Gilab edit your CI/CD Variable to the NGrok temporary public address
+------------------------------------------------------------------------------
+
+Edit your .gitlab-ci.yml as well with the ngrok url!!!
 #Note that ngrok will have every time different url once you stop/resart NGrok
 
-Booom. Pipeline worked.
+Booom. rerun pipeline, for first step I added a curl install and curl ngrok adress command to check at the firsst stage if my sonarQube have response
+to the Gitlab environment.
 
 
-Published at 2024.10.27: Peter Csohany 8X AWS Certified, Instrument-IT
+Published at 2024.10.27: Peter Csohany 5X AWS Certified, Instrument-IT
 
-
-my example .gitlab-ci.yml config
+my example .gitlab-ci.yml config. This is a Python Project.
 
 stages:
   - test
@@ -156,12 +163,11 @@ test:
   image: debian:latest
   services:
     - name: docker:dind
-      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=192.168.0.176"]
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=192.168.0.176"] #this command only need if the solution works without proxy and your router let expose your local to public internet without proxy
   stage: test
   script:
     - apt-get update && apt-get install -y curl  # Install curl
-    - curl https://cc0e-94-248-144-212.ngrok-free.app/api/server/version
-
+    - curl https://cc0e-33-44-55-66.ngrok-free.app/api/server/version #test gitlab sonar connection with the great middleman Ngrok proxy tunneling service helper
 
 
 build:
